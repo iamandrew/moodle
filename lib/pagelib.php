@@ -1472,15 +1472,16 @@ class moodle_page {
         }
 
         foreach ($themeorder as $themetype) {
+            $devicetheme = get_selected_theme_for_device_type($this->devicetypeinuse);
             switch ($themetype) {
                 case 'course':
-                    if (!empty($CFG->allowcoursethemes) && !empty($this->_course->theme) && $this->devicetypeinuse == 'default') {
+                    if (!empty($CFG->allowcoursethemes) && !empty($this->_course->theme) && empty($devicetheme)) {
                         return $this->_course->theme;
                     }
                 break;
 
                 case 'category':
-                    if (!empty($CFG->allowcategorythemes) && $this->devicetypeinuse == 'default') {
+                    if (!empty($CFG->allowcategorythemes) && empty($devicetheme)) {
                         $categories = $this->categories;
                         foreach ($categories as $category) {
                             if (!empty($category->theme)) {
@@ -1497,7 +1498,7 @@ class moodle_page {
                 break;
 
                 case 'user':
-                    if (!empty($CFG->allowuserthemes) && !empty($USER->theme) && $this->devicetypeinuse == 'default') {
+                    if (!empty($CFG->allowuserthemes) && !empty($USER->theme) && empty($devicetheme)) {
                         if ($mnetpeertheme) {
                             return $mnetpeertheme;
                         } else {
@@ -1511,7 +1512,6 @@ class moodle_page {
                         return $mnetpeertheme;
                     }
                     // First try for the device the user is using.
-                    $devicetheme = get_selected_theme_for_device_type($this->devicetypeinuse);
                     if (!empty($devicetheme)) {
                         return $devicetheme;
                     }
