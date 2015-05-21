@@ -26,6 +26,7 @@
 
 require('../config.php');
 require_once('lib.php');
+require_once('index_form.php');
 
 // Try to prevent searching for sites that allow sign-up.
 if (!isset($CFG->additionalhtmlhead)) {
@@ -49,6 +50,8 @@ $context = context_system::instance();
 $PAGE->set_url("$CFG->httpswwwroot/login/index.php");
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('login');
+
+$renderer = $PAGE->get_renderer('core_login');
 
 /// Initialize variables
 $errormsg = '';
@@ -83,12 +86,13 @@ if (!empty($SESSION->has_timed_out)) {
 $frm  = false;
 $user = false;
 
+$mform = new login_index_form();
+
 $authsequence = get_enabled_auth_plugins(true); // auths, in sequence
 foreach($authsequence as $authname) {
     $authplugin = get_auth_plugin($authname);
     $authplugin->loginpage_hook();
 }
-
 
 /// Define variables used in page
 $site = get_site();
@@ -111,13 +115,14 @@ if ($user !== false or $frm !== false or $errormsg !== '') {
         $user = weblink_auth($SESSION->wantsurl);
     }
     if ($user) {
+        $mform->set_data(array('username'=>$user->username));
         $frm->username = $user->username;
     } else {
-        $frm = data_submitted();
+        $frm = $mform->get_data();
     }
 
 } else {
-    $frm = data_submitted();
+    $frm = $mform->get_data();
 }
 
 /// Check if the user has actually submitted login data to us
@@ -351,13 +356,9 @@ echo $OUTPUT->header();
 
 if (isloggedin() and !isguestuser()) {
     // prevent logging when already logged in, we do not want them to relogin by accident because sesskey would be changed
-    echo $OUTPUT->box_start();
-    $logout = new single_button(new moodle_url($CFG->httpswwwroot.'/login/logout.php', array('sesskey'=>sesskey(),'loginpage'=>1)), get_string('logout'), 'post');
-    $continue = new single_button(new moodle_url($CFG->httpswwwroot.'/login/index.php', array('cancel'=>1)), get_string('cancel'), 'get');
-    echo $OUTPUT->confirm(get_string('alreadyloggedin', 'error', fullname($USER)), $logout, $continue);
-    echo $OUTPUT->box_end();
+    echo $renderer->show_already_logged_in();
 } else {
-    include("index_form.html");
+    echo $renderer->show_login_form($mform, $show_instructions);
     if ($errormsg) {
         $PAGE->requires->js_init_call('M.util.focus_login_error', null, true);
     } else if (!empty($CFG->loginpageautofocus)) {

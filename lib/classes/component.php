@@ -374,6 +374,7 @@ $cache = '.var_export($cache, true).';
             'iso6392'     => null,
             'langconfig'  => null,
             'license'     => null,
+            'login'       => $CFG->dirroot.'/login',
             'mathslib'    => null,
             'media'       => null,
             'message'     => $CFG->dirroot.'/message',
